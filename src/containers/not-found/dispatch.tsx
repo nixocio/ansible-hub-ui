@@ -43,7 +43,7 @@ export const Dispatch = (props: RouteProps) => {
   useEffect(() => {
     CollectionVersionAPI.list({ namespace, name, is_highest: true })
       .then(({ data: { data } }) => setCollections(data || []))
-      .catch(() => setCollections([]));
+      .catch((e) => console.log(e, 'error'));
 
     if (featureFlags.legacy_roles) {
       LegacyRoleAPI.list({ github_user: namespace, name })
@@ -51,6 +51,24 @@ export const Dispatch = (props: RouteProps) => {
         .catch(() => setRoles([]));
     }
   }, [pathname]);
+
+  useEffect(() => {
+    if (collections && collections.length === 1) {
+      props.navigate(
+        formatPath(Paths.collectionByRepo, {
+          repo: collections[0].repository.name,
+          namespace: collections[0].collection_version.namespace,
+          collection: collections[0].collection_version.name,
+        }),
+      );
+    }
+
+    if (featureFlags.legacy_roles && roles && roles.length === 1) {
+      props.navigate(
+        formatPath(Paths.legacyRole, { username: namespace, name }),
+      );
+    }
+  }, [collections, roles]);
 
   return (
     <>
